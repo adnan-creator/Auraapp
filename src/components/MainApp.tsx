@@ -11,13 +11,55 @@ interface MainAppProps {
   userData: UserData;
 }
 
+export interface PlannedEvent {
+  id: string;
+  eventName: string;
+  eventDate: Date;
+  dateString: string;
+  daysRemaining: number;
+  totalItems: number;
+  completedItems: number;
+  checkedItems: Set<number>;
+}
+
 export default function MainApp({ userData }: MainAppProps) {
   const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [plannedEvents, setPlannedEvents] = useState<PlannedEvent[]>([]);
+
+  const addPlannedEvent = (event: PlannedEvent) => {
+    setPlannedEvents(prev => [...prev, event]);
+  };
+
+  const updatePlannedEvent = (id: string, updates: Partial<PlannedEvent>) => {
+    setPlannedEvents(prev => 
+      prev.map(event => event.id === id ? { ...event, ...updates } : event)
+    );
+  };
+
+  const deletePlannedEvent = (id: string) => {
+    setPlannedEvents(prev => prev.filter(event => event.id !== id));
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {activeTab === 'home' && <HomeScreen userData={userData} />}
-      {activeTab === 'timeline' && <TimelineScreen userData={userData} />}
+      {activeTab === 'home' && (
+        <HomeScreen 
+          userData={userData} 
+          plannedEvents={plannedEvents}
+          onAddPlannedEvent={addPlannedEvent}
+          onUpdatePlannedEvent={updatePlannedEvent}
+          onDeletePlannedEvent={deletePlannedEvent}
+        />
+      )}
+      {activeTab === 'timeline' && (
+        <TimelineScreen 
+          userData={userData} 
+          plannedEvents={plannedEvents}
+          onAddPlannedEvent={addPlannedEvent}
+          onUpdatePlannedEvent={updatePlannedEvent}
+          onDeletePlannedEvent={deletePlannedEvent}
+        />
+      )}
       {activeTab === 'settings' && <SettingsScreen userData={userData} />}
 
       {/* Bottom Navigation */}

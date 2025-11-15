@@ -1,19 +1,25 @@
 import { useState } from 'react';
-import { Settings as SettingsIcon, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Settings as SettingsIcon, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Calendar as CalendarIcon, ChevronRight } from 'lucide-react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { UserData } from '../App';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import ActionPlan from './ActionPlan';
+import { PlannedEvent } from './MainApp';
 
 interface HomeScreenProps {
   userData: UserData;
+  plannedEvents: PlannedEvent[];
+  onAddPlannedEvent: (event: PlannedEvent) => void;
+  onUpdatePlannedEvent: (id: string, updates: Partial<PlannedEvent>) => void;
+  onDeletePlannedEvent: (id: string) => void;
 }
 
-export default function HomeScreen({ userData }: HomeScreenProps) {
+export default function HomeScreen({ userData, plannedEvents, onAddPlannedEvent, onUpdatePlannedEvent, onDeletePlannedEvent }: HomeScreenProps) {
   const [expandedRisk, setExpandedRisk] = useState(false);
   const [showActionPlan, setShowActionPlan] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PlannedEvent | null>(null);
   
   // High risk state by default
   const riskLevel = 72;
@@ -27,6 +33,36 @@ export default function HomeScreen({ userData }: HomeScreenProps) {
     { name: 'Skipped Meals', percentage: 10, description: 'Irregular eating patterns increase your risk.' },
     { name: 'Screen Time', percentage: 5, description: 'Extended screen exposure shows mild correlation.' },
   ];
+
+  // Get the nearest upcoming planned event
+  const upcomingEvent = plannedEvents.length > 0 
+    ? plannedEvents.sort((a, b) => a.daysRemaining - b.daysRemaining)[0]
+    : null;
+
+  const handleSavePlan = (plan: PlannedEvent) => {
+    if (selectedPlan) {
+      // Update existing plan
+      onUpdatePlannedEvent(plan.id, plan);
+    } else {
+      // Add new plan
+      onAddPlannedEvent(plan);
+    }
+  };
+
+  const handleOpenNewPlan = () => {
+    setSelectedPlan(null);
+    setShowActionPlan(true);
+  };
+
+  const handleOpenExistingPlan = (plan: PlannedEvent) => {
+    setSelectedPlan(plan);
+    setShowActionPlan(true);
+  };
+
+  const handleCloseActionPlan = () => {
+    setShowActionPlan(false);
+    setSelectedPlan(null);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
@@ -136,15 +172,6 @@ export default function HomeScreen({ userData }: HomeScreenProps) {
           </div>
         </Card>
 
-        {/* Primary Action */}
-        <Button 
-          onClick={() => setShowActionPlan(true)}
-          size="lg"
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
-        >
-          + Plan a Migraine-Free Day
-        </Button>
-
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-4">
           <Card className="p-4 text-center">
@@ -165,6 +192,52 @@ export default function HomeScreen({ userData }: HomeScreenProps) {
             <div className="text-xs text-gray-500">Day</div>
           </Card>
         </div>
+
+        {/* My Plans Section - Only show if there are planned events */}
+        {upcomingEvent && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="w-5 h-5 text-blue-600" />
+              <h2 className="text-lg">My Plans</h2>
+            </div>
+            <Card 
+              className="p-4 hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
+              onClick={() => handleOpenExistingPlan(upcomingEvent)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-gray-900">{upcomingEvent.eventName}</h3>
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <p className="text-sm text-blue-600">
+                    {upcomingEvent.daysRemaining === 0 ? 'Today' : 
+                     upcomingEvent.daysRemaining === 1 ? 'Tomorrow' :
+                     `In ${upcomingEvent.daysRemaining} days`}
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Progress 
+                      value={(upcomingEvent.completedItems / upcomingEvent.totalItems) * 100} 
+                      className="h-1.5 flex-1"
+                    />
+                    <span className="text-xs text-gray-600 whitespace-nowrap">
+                      {upcomingEvent.completedItems}/{upcomingEvent.totalItems}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Primary Action - Always visible */}
+        <Button 
+          onClick={handleOpenNewPlan}
+          size="lg"
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+        >
+          + Plan a Migraine-Free Day
+        </Button>
 
         {/* Migraine Genome */}
         <Card className="p-6 space-y-4">
@@ -210,9 +283,14 @@ export default function HomeScreen({ userData }: HomeScreenProps) {
       </div>
 
       {/* Action Plan Dialog */}
-      <Dialog open={showActionPlan} onOpenChange={setShowActionPlan}>
+      <Dialog open={showActionPlan} onOpenChange={handleCloseActionPlan}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <ActionPlan onClose={() => setShowActionPlan(false)} />
+          <ActionPlan 
+            existingPlan={selectedPlan}
+            onClose={handleCloseActionPlan}
+            onSavePlan={handleSavePlan}
+            onDeletePlan={onDeletePlannedEvent}
+          />
         </DialogContent>
       </Dialog>
     </div>
