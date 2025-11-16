@@ -1,7 +1,7 @@
 
-  # Aura App Content Specification
+  # Kleara App
 
-  This is a code bundle for Aura App Content Specification. The original project is available at https://www.figma.com/design/KWcNPmj6FUIhXjNziQKxC8/Aura-App-Content-Specification.
+  This is a code bundle for Kleara App. The original project is available at https://www.figma.com/design/KWcNPmj6FUIhXjNziQKxC8/Kleara-App.
 
   ## Running the code
 

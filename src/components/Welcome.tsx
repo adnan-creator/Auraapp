@@ -15,15 +15,18 @@ export default function Welcome({ onNext }: WelcomeProps) {
             alt="Aura visualization"
             className="w-full h-full object-cover rounded-3xl"
           />
+          <h1 className="absolute bottom-12 left-1/2 -translate-x-1/2 text-6xl font-bold tracking-tight text-white">
+            Kleara
+          </h1>
         </div>
         
         <div className="space-y-4">
-          <h1 className="text-5xl tracking-tight bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+          <h2 className="text-3xl tracking-tight text-gray-900">
             Predict. Prevent. Live freely.
-          </h1>
+          </h2>
           
           <p className="text-gray-600 max-w-lg mx-auto">
-            Aura uses AI to forecast your migraines days in advance, 
+            Kleara uses AI to forecast your migraines days in advance, 
             helping you plan for the moments that matter most.
           </p>
         </div>
